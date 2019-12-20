@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+# Script to update istio release. This script will download istio and istio-init and combine them into a single rancher chart
+# To use this script, run
+# ./scripts/update-istio ${istio_version}
+# For example, to update istio 1.4.2, run
+# ./scripts/update-istio 1.4.2
+
+set -e
+
+# Download istio release
+mkdir -p charts/rancher-istio/${1}
+curl -sL https://storage.googleapis.com/istio-release/releases/${1}/charts/istio-${1}.tgz | tar xvzf - -C charts/rancher-istio/${1} --strip 1
+
+# Download istio-init release
+mkdir -p charts/rancher-istio/${1}/charts/istio-init
+curl -sL https://storage.googleapis.com/istio-release/releases/${1}/charts/istio-init-${1}.tgz | tar xvzf - -C charts/rancher-istio/${1}/charts/istio-init --strip 1
+
+# Add question.yaml
+cat > charts/rancher-istio/${1}/questions.yaml << EOF
+labels:
+  rancher.istio.v${1}: ${1}
+rancher_min_version: 2.3.0-rc1
+EOF
+
+# Add istio-init to requirements.yaml
+tee -a charts/rancher-istio/${1}/requirements.yaml << END
+  - name: istio-init
+    version: ${1}
+END
+
+# Replace the name of the chart
+sed -i 's/name: istio/name: rancher-istio/g' charts/rancher-istio/${1}/Chart.yaml
