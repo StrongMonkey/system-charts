@@ -646,4 +646,4 @@ global:
   # When this option is set as true, Istio Operator, instead of webhooks, manages the
   # webhook configurations. When this option is set as false, webhooks manage their
   # own webhook configurations.
-  operatorManageWebhooks: false
+  operatorManageWebhooks: true
