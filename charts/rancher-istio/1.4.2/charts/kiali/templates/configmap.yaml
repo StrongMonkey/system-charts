@@ -16,7 +16,7 @@ data:
     auth:
       strategy: {{ .Values.dashboard.auth.strategy }}
     server:
-      port: 20001
+      port: 20000
 {{- if .Values.contextPath }}
       web_root: {{ .Values.contextPath }}
 {{- end }}

@@ -48,14 +48,14 @@ spec:
         readinessProbe:
           httpGet:
             path: {{ .Values.contextPath }}/healthz
-            port: 20001
+            port: 20000
             scheme:  {{ if .Values.security.enabled }} 'HTTPS' {{ else }} 'HTTP' {{ end }}
           initialDelaySeconds: 5
           periodSeconds: 30
         livenessProbe:
           httpGet:
             path: {{ .Values.contextPath }}/healthz
-            port: 20001
+            port: 20000
             scheme:  {{ if .Values.security.enabled }} 'HTTPS' {{ else }} 'HTTP' {{ end }}
           initialDelaySeconds: 5
           periodSeconds: 30
@@ -77,6 +77,21 @@ spec:
 {{- else }}
 {{ toYaml .Values.global.defaultResources | indent 10 }}
 {{- end }}
+      - name: kiali-proxy
+        image: "rancher/nginx:1.17.4-alpine"
+        args:
+        - nginx
+        - -g
+        - daemon off;
+        - -c
+        - /nginx/nginx.conf
+        ports:
+        - name: http
+          containerPort: 20001
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /nginx/
+          name: kiali-nginx
       volumes:
       - name: kiali-configuration
         configMap:
@@ -87,6 +102,13 @@ spec:
 {{- if not .Values.security.enabled }}
           optional: true
 {{- end }}
+      - name: kiali-nginx
+        configMap:
+          name: kiali-nginx
+          items:
+          - key: nginx.conf
+            mode: 438
+            path: nginx.conf
       - name: kiali-secret
         secret:
           secretName: {{ .Values.dashboard.secretName }}
